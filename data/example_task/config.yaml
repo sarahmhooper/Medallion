@@ -1,0 +1,5 @@
+num_classes: 4 # Include background in count of number of classes
+label_mapping:
+  rightventricle: 1 # No need to list class 0 (background) in label mapping
+  myocardium: 2
+  endocardium: 3

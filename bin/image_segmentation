@@ -1,0 +1,241 @@
+#!/usr/bin/env python
+
+import argparse
+import logging
+
+from emmental.utils.parse_args import parse_args
+from emmental.utils.utils import nullable_float, nullable_int, nullable_string, str2bool
+
+from dauphin.image_segmentation.image_segmentation import main
+
+logger = logging.getLogger(__name__)
+
+
+def add_application_args(parser):
+
+    # Application configuration
+    application_config = parser.add_argument_group("Application configuration")
+
+    application_config.add_argument(
+        "--task",
+        type=str,
+        default="task",
+        help="Task name (can be anything, e.g., CardiacMR)",
+    )
+
+    application_config.add_argument(
+        "--datapath", 
+        type=str, 
+        required=True, 
+        help="Path to directory where image data is stored"
+    )
+    
+    application_config.add_argument(
+        "--train_segpath", 
+        type=nullable_string, 
+        required=True, 
+        help="Path to directory where training segmentation masks are stored; used on train split"
+    )
+    
+    application_config.add_argument(
+        "--eval_segpath", 
+        type=nullable_string, 
+        required=True, 
+        help="Path to directory where ground truth segmentation masks are stored; used on validation and test splits"
+    )
+
+    application_config.add_argument(
+        "--consistency_datapath",
+        type=nullable_string,
+        default=None,
+        help="Path to directory where image data used for consistency loss is stored (can be same as datapath); set to None to not use self-supervised learning.",
+    )
+
+    application_config.add_argument(
+        "--image_size_r", 
+        type=int, 
+        required=True, 
+        help="Number of rows in image; if input image is not this size, it will be resized to this size"
+    )
+    
+    application_config.add_argument(
+        "--image_size_c", 
+        type=int, 
+        required=True, 
+        help="Number of columns in image; if input image is not this size, it will be resized to this size"
+    )
+    
+    application_config.add_argument(
+        "--hist_eq", 
+        type=bool, 
+        default=False, 
+        help="Whether to perform histogram equalization on input images as a preprocessing operation"
+    )
+
+    application_config.add_argument(
+        "--batch_size", 
+        type=int, 
+        default=16, 
+        help="Batch size for supervised loss"
+    )
+
+    application_config.add_argument(
+        "--consistency_batch_size", 
+        type=int, 
+        default=16, 
+        help="Batch size for self-supervised loss"
+    )
+
+    application_config.add_argument(
+        "--valid_batch_size",
+        type=nullable_int,
+        default=16,
+        help="Batch size for validation dataset",
+    )
+
+    application_config.add_argument(
+        "--train", 
+        type=str2bool, 
+        default=True, 
+        help="Whether to train a model"
+    )
+
+    application_config.add_argument(
+        "--model",
+        type=str,
+        default="UNet",
+        choices=["UNet","GadgetronResUnet18","Res50"],
+        help="Which model architecture to use",
+    )
+
+    application_config.add_argument(
+        "--augment_k",
+        type=nullable_int,
+        default=4,
+        help="How many augmentation operations to select from for each sample",
+    )
+
+    application_config.add_argument(
+         "--augment_enlarge",
+         type=int,
+         default=1,
+         help="How many times to enlarge the batch",
+     )
+
+    application_config.add_argument(
+        "--num_comp",
+        type=int,
+        default=2,
+        help="Number of transformations composed for augmentation",
+    )
+
+    application_config.add_argument(
+         "--fillup",
+         type=str2bool,
+         default=False,
+         help="Whether fill up the data in dataloader",
+     )
+
+    application_config.add_argument(
+         "--trim",
+         type=str2bool,
+         default=False,
+         help="Whether trim the data in dataloader",
+     )
+
+    application_config.add_argument(
+        "--csv_fn",
+        type=nullable_string,
+        default=None,
+        help="CSV containing key, index pairs to select which data to use as labeled data; set to None to use all image/segmentation pairs available",
+    )
+
+    application_config.add_argument(
+        "--consistency_csv_fn",
+        type=nullable_string,
+        default=None,
+        help="CSV containing key, index pairs to select which data to use in self-supervised loss; set to None to use all available data in the self-supervised loss (recommended)",
+    )
+        
+    application_config.add_argument(
+        "--n_sup_batches_per_step",
+        type=int,
+        default=1,
+        help="Number of supervised batches per step",
+    )
+
+    application_config.add_argument(
+        "--n_unsup_batches_per_step",
+        type=int,
+        default=4,
+        help="Number of unsupervised batches per step",
+    )
+
+    application_config.add_argument(
+        "--scheduler",
+        type=str,
+        default="augment",
+        choices=[
+            "augment",
+            "consistency",
+        ],
+        help="Which scheduler to use",
+    )
+    
+    application_config.add_argument(
+        "--uncertainty",
+        type=nullable_float,
+        default=0.05,
+        help="Uncertainty threshold for ignoring pseudo labels; any pixels with labels 0.5+-(this value) will not be used. Set to None to use all pseudo labels",
+    )
+    
+    application_config.add_argument(
+        "--predict_on_train",
+        type=str2bool,
+        default=False,
+        help="Whether to save predictions on train set",
+    )
+    
+    application_config.add_argument(
+        "--train_data_available",
+        type=str2bool,
+        default=True,
+        help="Whether to create a dataloader for training data; set to False if no training data is available (e.g., if running inference)",
+    )
+    
+    application_config.add_argument(
+        "--val_data_available",
+        type=str2bool,
+        default=True,
+        help="Whether to create a dataloader for validation data; set to False if no validation data is available",
+    )
+    
+    application_config.add_argument(
+        "--test_data_available",
+        type=str2bool,
+        default=True,
+        help="Whether to create a dataloader for testing data; set to False if no testing data is available",
+    )
+    
+    application_config.add_argument(
+        "--record_scores",
+        type=str2bool,
+        default=True,
+        help="Whether save metrics.txt (this increases evaluation time at end of training)",
+    )
+
+
+
+if __name__ == "__main__":
+    # Parse cmdline args and setup environment
+    parser = argparse.ArgumentParser(
+        description="Commandline interface for image segmentation augmentation applications.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser = parse_args(parser=parser)
+    add_application_args(parser)
+
+    args = parser.parse_args()
+
+    main(args)
