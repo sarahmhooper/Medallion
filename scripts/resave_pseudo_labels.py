@@ -7,7 +7,7 @@ sys.path.append("../dauphin/image_segmentation/datasets")
 from utils import custom_preproc_op
 
 
-def resave(pred_seg_path, gt_seg_path, csv_path):
+def resave(pred_seg_path, gt_seg_path, csv_path, n_classes):
     """
     Replace the segmentations in pred_seg_path with the ground truth segmentations in gt_seg_path specified in csv_path
     """
@@ -35,7 +35,7 @@ def resave(pred_seg_path, gt_seg_path, csv_path):
             if os.path.exists(pred_path): pred = np.load(pred_path)
             gt = custom_preproc_op(gt, prob.shape[0], prob.shape[1], order=0)
             
-            for cl_ind in np.unique(gt):
+            for cl_ind in range(n_classes):
                 for idx in csv_dict[key]:
                     if os.path.exists(pred_path): 
                         pred[:,:,int(idx)] = gt[:,:,int(idx)]
@@ -58,7 +58,7 @@ def resave(pred_seg_path, gt_seg_path, csv_path):
             if os.path.exists(pred_path): pred = np.load(pred_path)
             gt = custom_preproc_op(gt, prob.shape[0], prob.shape[1], order=0)
             
-            for cl_ind in np.unique(gt):
+            for cl_ind in range(n_classes):
                 for idx in range(gt.shape[-1]):
                     if os.path.exists(pred_path): 
                         pred[:,:,int(idx)] = gt[:,:,int(idx)]
