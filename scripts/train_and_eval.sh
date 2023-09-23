@@ -26,6 +26,7 @@ optimizer=adam # Optimizer for training
 batch_size=32 # Batch size for labeled data 
 consistency_batch_size=32 # Batch size for unlabeled data, if using
 scheduler=consistency # Set to "consistency" if using consistency loss; else set to "augment"
+n_classes=2 # Number of classes, including background; should match the config
 
 # Below are parameters that are automatically set
 if [[ $consistency_datapath == "None" ]]
@@ -78,7 +79,7 @@ image_segmentation --task ${task} \
 ##################### RESAVE PSUEDO LABELS ####################
 # In this step, we replace the predicted pseudo labels in the train set with the already-available ground truth labels that were used to train step 1
 
-$(python resave_pseudo_labels.py ${log_path}/final_preds/train ${train_segpath}/train ${csv_fn})
+$(python resave_pseudo_labels.py ${log_path}/final_preds/train ${train_segpath}/train ${csv_fn} ${n_classes})
 
 ##################### STEP 2: TRAIN FINAL MODEL WITH PSEUDO LABELS ####################
 
