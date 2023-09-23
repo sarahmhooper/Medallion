@@ -90,6 +90,7 @@ uncertainty=0.15 # Threshold for ignoring uncertain pseudo labels, 0.5+-uncertai
 
 # Below are parameters that are automatically set, do not alter
 train_segpath=${log_path}/final_preds # We'll use the pseudo labels saved in step 1 to train
+og_csv_id=${csv_id}
 csv_id=None # We'll use all available pseudo labels
 csv_fn=None # We'll use all available pseudo labels
 if [[ $uncertainty == "None" ]]
@@ -98,7 +99,7 @@ then
 else
   uncertainty_setting="with_uncertainty_thresh_"${uncertainty}
 fi
-log_path=../logs/${task}_logs/${model}/pseudo_train_labels/augment_${augment_k}/${consistency_setting}/${uncertainty_setting}/csv_${csv_id}/seed_${seed}
+log_path=../logs/${task}_logs/${model}/pseudo_train_labels_${og_csv_id}/augment_${augment_k}/${consistency_setting}/${uncertainty_setting}/csv_${csv_id}/seed_${seed}
 
 # Run step 2 training
 image_segmentation --task ${task} \
