@@ -8,7 +8,7 @@ setup(
     ),
     install_requires=[
         'emmental @ git+https://github.com/senwu/emmental@sen/online_score',
-        "torch==1.9.0",
+        "torch==1.13.1",
         "torchvision==0.10.0",
         "matplotlib>=3.3.4",
         "scikit-image>=0.17.2",
