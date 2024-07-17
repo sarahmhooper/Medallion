@@ -14,7 +14,7 @@ setup(
         "scikit-image>=0.17.2",
         "seaborn>=0.11.1",
         "urllib3==1.26.12",
-        "setuptools==59.5.0"
+        "setuptools==70.0.0"
     ],
     scripts=["bin/image_segmentation"],
     packages=find_packages(),
